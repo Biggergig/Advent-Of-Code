@@ -6,25 +6,29 @@ def main(input):
         # parses input
         dist = int(line[1:])
         direction = -1 if line[0] == "L" else 1
-        dist *= direction
 
-        # make turns
-        pos += dist
-        print(line, pos)
+        print(f"\nLINE: {line} (starting {pos=})")
 
-        while pos < 0:
+        print(f"dist is {dist}, turns={dist//100}, remainder={dist%100}")
+        full_rotations = dist // 100
+        p2 += full_rotations
+        if full_rotations:
+            print(f"+{full_rotations} full rotations")
+        dist %= 100
+
+        if direction == -1 and pos == 0 and dist > 0:
+            pos = 100  # don't count moving over
+
+        pos += dist * direction
+        if pos < 0 or pos > 100:
             p2 += 1
-            pos += 100
-            print("click!", p2, pos, sep="\t")
+            print(f"+1 due to overshoot ({pos=})")
+        pos %= 100
 
-        while pos > 99:
-            p2 += 1
-            pos -= 100
-            print("click!", p2, pos, sep="\t")
-        print("line done, p2 =", p2)
-
-        # part 1 - check if we end at 0
         if pos == 0:
             p1 += 1
-
+            if not full_rotations:
+                p2 += 1
+                print("+1 because of ending at 0")
+        print(f"after line: {p2=}")
     return p1, p2
