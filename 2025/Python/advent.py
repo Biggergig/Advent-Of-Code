@@ -68,10 +68,15 @@ days = [
 
 
 def loadInput(day):
-    if os.path.exists(os.path.join("input", "day{:0>2}.txt".format(day))):
-        print(os.path.join("input", "day{:0>2}.txt".format(day)))
+    import os
+
+    # Get the absolute path of the current file
+    current_file_path = os.path.abspath(__file__)
+    existing_path = os.path.join(
+        current_file_path, "..", "input", "day{:0>2}.txt".format(day)
+    )
+    if os.path.exists(existing_path):
         return
-    print(f"https://adventofcode.com/{YEAR}/day/{day}/input")
 
     cookie = {"session": os.environ["AOCcookie"]}
     r = requests.get(f"https://adventofcode.com/{YEAR}/day/{day}/input", cookies=cookie)
