@@ -1,9 +1,11 @@
-#!/usr/bin/pypy
+#!/home/biggergig/miniconda3/bin/python
+
 utilSource = "../../Templates/Python/"
 YEAR = 2025
 
 import sys, os
 import time
+
 sys.path.append(utilSource)
 
 import requests
@@ -36,75 +38,80 @@ from src.day25 import main as day25
 from utils.aocUtils import *
 
 days = [
-	None,
-	day01,
-	day02,
-	day03,
-	day04,
-	day05,
-	day06,
-	day07,
-	day08,
-	day09,
-	day10,
-	day11,
-	day12,
-	day13,
-	day14,
-	day15,
-	day16,
-	day17,
-	day18,
-	day19,
-	day20,
-	day21,
-	day22,
-	day23,
-	day24,
-	day25
+    None,
+    day01,
+    day02,
+    day03,
+    day04,
+    day05,
+    day06,
+    day07,
+    day08,
+    day09,
+    day10,
+    day11,
+    day12,
+    day13,
+    day14,
+    day15,
+    day16,
+    day17,
+    day18,
+    day19,
+    day20,
+    day21,
+    day22,
+    day23,
+    day24,
+    day25,
 ]
 
-def loadInput(day):
-	if os.path.exists(os.path.join("input","day{:0>2}.txt".format(day))):
-		return
-	year = 2025
 
-	cookik = {"session":os.environ["AOCcookie"]}
-	r = requests.get(f"https://adventofcode.com/{year}/day/{day}/input", cookies=cookie)
-	if not r.text.startswith("Please"):
-		with open("input/day{:0>2}.txt".format(day), 'w') as f:
-			f.write(r.text)
+def loadInput(day):
+    if os.path.exists(os.path.join("input", "day{:0>2}.txt".format(day))):
+        print(os.path.join("input", "day{:0>2}.txt".format(day)))
+        return
+    print(f"https://adventofcode.com/{YEAR}/day/{day}/input")
+
+    cookie = {"session": os.environ["AOCcookie"]}
+    r = requests.get(f"https://adventofcode.com/{YEAR}/day/{day}/input", cookies=cookie)
+    if not r.text.startswith("Please"):
+        with open("input/day{:0>2}.txt".format(day), "w") as f:
+            f.write(r.text)
+
 
 notYetDay = False
 
+
 def runDay(day):
-	loadInput(day)
-	if not os.path.exists(os.path.join("input","day{:0>2}.txt".format(day))):
-		global notYetDay
-		notYetDay = True
-		return 0
-	print(f"	DAY {day}: ")
-	dayStr = str(day).zfill(2)
-	inp = open(f"input/day{dayStr}.txt", "r").read()
-	start = time.time_ns()
-	res = days[day](inp)
-	end = time.time_ns()
-	printAnswer(res)
-	print("Execution took",round((end-start)/1e6,1),end="ms\n")
-	return end-start
+    loadInput(day)
+    if not os.path.exists(os.path.join("input", "day{:0>2}.txt".format(day))):
+        global notYetDay
+        notYetDay = True
+        return 0
+    print(f"	DAY {day}: ")
+    dayStr = str(day).zfill(2)
+    inp = open(f"input/day{dayStr}.txt", "r").read()
+    start = time.time_ns()
+    res = days[day](inp)
+    end = time.time_ns()
+    printAnswer(res)
+    print("Execution took", round((end - start) / 1e6, 1), end="ms\n")
+    return end - start
+
 
 if __name__ == "__main__":
-	if(len(sys.argv) == 2):
-		try:
-			runDay(int(sys.argv[1]))
-		except FileNotFoundError:
-			print("ERROR: invalid argument", sys.argv[1])
-	else:
-		print(f"Advent of Code {YEAR} [Python]")
-		total = 0
-		for i in range(1,26):
-			total+=runDay(i)
-			if notYetDay:
-				break
-			print()
-		print("Total execution time:",round(total/1e6, 1),end="ms\n")
+    if len(sys.argv) == 2:
+        try:
+            runDay(int(sys.argv[1]))
+        except FileNotFoundError:
+            print("ERROR: invalid argument", sys.argv[1])
+    else:
+        print(f"Advent of Code {YEAR} [Python]")
+        total = 0
+        for i in range(1, 26):
+            total += runDay(i)
+            if notYetDay:
+                break
+            print()
+        print("Total execution time:", round(total / 1e6, 1), end="ms\n")
