@@ -27,6 +27,8 @@ Each year/language I have a goal in mind
 
 2024: Refresh C++, and also make visualization / do it in JS with React
 
+2025: Keep up with tradition and practice python
+
 To get millisecond-time,
 
 ```
