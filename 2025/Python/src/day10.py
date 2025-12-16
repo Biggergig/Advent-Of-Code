@@ -1,5 +1,6 @@
-from collections import deque, Counter
-
+from collections import deque
+from dataclasses import dataclass, field
+from heapq import *
 
 class State:
     def __init__(self, lights, switches, dist=0):
@@ -10,30 +11,6 @@ class State:
     def next_states(self):
         for sw in self.switches:
             yield State(self.lights ^ sw, self.switches, self.dist + 1)
-
-
-class State_2:
-    def __init__(self, switches, joltage, dist=0, lights=None, target=None):
-        if lights is None:
-            self.lights = Counter()
-        else:
-            self.lights = lights
-        self.switches = switches
-        if target is None:
-            self.target = Counter(dict(zip(range(len(joltage)), joltage)))
-        else:
-            self.target = target
-        # print(self.lights, self.switches)
-        # print(self.target)
-        self.dist = dist
-
-    def next_states(self):
-        for sw in self.switches:
-            new_lights = self.lights + sw
-            if len(new_lights - self.target) != 0:
-                continue
-            yield State_2(self.switches, None, self.dist + 1, new_lights, self.target)
-
 
 def solve_p1(start_state):
     q = deque([start_state])
@@ -50,31 +27,55 @@ def solve_p1(start_state):
                 q.append(ns)
 
 
-def _hash_counter(c):
-    return tuple(sorted(c.items()))
+@dataclass
+class State2:
+    remaining: list
+    presses: int
+    h: int = field(init=False)
+    dist: int = field(init=False)
 
+    def __post_init__(self):
+        self.h = max(self.remaining)
+        self.dist = self.h + self.presses
 
-def solve_p2(start_state):
-    q = deque([start_state])
+    def is_valid(self):
+        return all(v >= 0 for v in self.remaining)
+    
+    def __lt__(self, other):
+        return self.dist<other.dist
+
+def solve_p2(start_state, switches):
+    switches.sort(key=len, reverse=True)
+    print(start_state)
+    print(switches)
+    heap = [start_state]
     seen = set()
-    while True:
-        s = q.popleft()
-        if _hash_counter(s.lights) in seen:
-            continue
-        seen.add(_hash_counter(s.lights))
-        if s.lights == s.target:
-            return s.dist
-        for ns in s.next_states():
-            if ns not in seen:
-                q.append(ns)
-
-
-def _text_to_list(text):
-    return list(map(int, text[1:-1].split(",")))
-
+    while heap:
+        st = heappop(heap)
+        if tuple(st.remaining) in seen: continue
+        seen.add(tuple(st.remaining))
+        # print(st)
+        if st.h == 0:
+            return st.presses
+        for sw in switches:
+            tmp = st.remaining.copy()
+            extra_presses = 0
+            while True:
+                extra_presses += 1
+                for i in sw:
+                    tmp[i]-=1
+                new_state = State2(tmp.copy(), st.presses+extra_presses)
+                if new_state.is_valid() and tuple(new_state.remaining) not in seen:
+                    heappush(heap, new_state)
+                else:
+                    break
+    assert False, "THIS SHOULD NEVER HIT"
 
 def main(input):
     p1 = p2 = 0
+
+    def _text_to_list(text):
+        return list(map(int, text[1:-1].split(",")))
 
     for line in input.splitlines():
         lights, *switches, joltage = line.split()
@@ -82,19 +83,16 @@ def main(input):
         switches_num = []
         for switch in switches:
             val = 0
-            for v in map(int, _text_to_list(switch)):
+            for v in _text_to_list(switch):
                 val += 1 << v
             switches_num.append(val)
         start = State(lights, switches_num)
         p1 += solve_p1(start)
 
-        sw_2 = []
-        for sw in switches:
-            c = Counter()
-            for s in _text_to_list(sw):
-                c[s] += 1
-            sw_2.append(c)
-        s2 = State_2(sw_2, _text_to_list(joltage), 0)
-        p2 += solve_p2(s2)
+        joltage_list = _text_to_list(joltage)
+        switches_list = list(map(_text_to_list,switches))
+        s2 = State2(joltage_list, 0)
+        p2 += solve_p2(s2, switches_list)
+
 
     return p1, p2
