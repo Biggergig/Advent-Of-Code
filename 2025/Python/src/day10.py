@@ -1,6 +1,5 @@
 from collections import deque
-from dataclasses import dataclass, field
-from heapq import *
+from z3 import *
 
 class State:
     def __init__(self, lights, switches, dist=0):
@@ -26,50 +25,28 @@ def solve_p1(start_state):
             if ns not in seen:
                 q.append(ns)
 
+def solve_p2(switches, joltage):
+    # print()
+    # print(switches)
+    # print(joltage)
+    equations = joltage
+    variables = [Int(f'b_{i}') for i in range(len(switches))]
+    total_presses = Int("total_presses")
+    for var, sw in zip(variables,switches):
+        for i in sw:
+            equations[i]-=var
+    for i in range(len(equations)):
+        equations[i] = (equations[i] == 0)
 
-@dataclass
-class State2:
-    remaining: list
-    presses: int
-    h: int = field(init=False)
-    dist: int = field(init=False)
-
-    def __post_init__(self):
-        self.h = max(self.remaining)
-        self.dist = self.h + self.presses
-
-    def is_valid(self):
-        return all(v >= 0 for v in self.remaining)
+    s = Optimize()
+    s.add(*equations, sum(variables) == total_presses, *(v>=0 for v in variables))
+    s.minimize(total_presses)
     
-    def __lt__(self, other):
-        return self.dist<other.dist
+    s.check()
+    model = s.model()
+    # print(model)
+    return int(model[total_presses].as_long())
 
-def solve_p2(start_state, switches):
-    switches.sort(key=len, reverse=True)
-    print(start_state)
-    print(switches)
-    heap = [start_state]
-    seen = set()
-    while heap:
-        st = heappop(heap)
-        if tuple(st.remaining) in seen: continue
-        seen.add(tuple(st.remaining))
-        # print(st)
-        if st.h == 0:
-            return st.presses
-        for sw in switches:
-            tmp = st.remaining.copy()
-            extra_presses = 0
-            while True:
-                extra_presses += 1
-                for i in sw:
-                    tmp[i]-=1
-                new_state = State2(tmp.copy(), st.presses+extra_presses)
-                if new_state.is_valid() and tuple(new_state.remaining) not in seen:
-                    heappush(heap, new_state)
-                else:
-                    break
-    assert False, "THIS SHOULD NEVER HIT"
 
 def main(input):
     p1 = p2 = 0
@@ -91,8 +68,6 @@ def main(input):
 
         joltage_list = _text_to_list(joltage)
         switches_list = list(map(_text_to_list,switches))
-        s2 = State2(joltage_list, 0)
-        p2 += solve_p2(s2, switches_list)
-
+        p2 += solve_p2(switches_list, joltage_list)
 
     return p1, p2
