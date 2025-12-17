@@ -1,9 +1,9 @@
 from collections import deque
 
-def get_paths_from(nodes, source, sink, dag_order):
+def get_paths_from(nodes, source, sink, dag_order, starting_paths = 1):
     paths = {n:0 for n in nodes}
     paths['out'] = 0
-    paths[source] = 1
+    paths[source] = starting_paths
 
     k = dag_order.index(source)
     t = dag_order.index(sink)
@@ -11,7 +11,6 @@ def get_paths_from(nodes, source, sink, dag_order):
     for n in dag_order[k:t+1]:
         for e in nodes[n]:
             paths[e]+=paths[n]
-    print(paths)
     return paths[sink]
 
 
@@ -59,7 +58,9 @@ def main(input):
         # This must be a DAG otherwise we would have infinite loops, so just need to find which one is first, and which one is last
     
         first,second = get_checkpoint_order(dag_order)
-        print(get_paths_from(nodes, 'svr', 'fft', dag_order))
+        first_paths = get_paths_from(nodes, 'svr', first, dag_order)
+        second_paths = get_paths_from(nodes, first, second, dag_order, starting_paths=first_paths)
+        p2 = get_paths_from(nodes, second, 'out', dag_order, starting_paths=second_paths)
     else:
         p2 = "N/A"
 
